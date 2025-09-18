@@ -4,19 +4,27 @@ import type { FootnoteRegistry } from '../lib/footnote-registry';
 export interface Props {
   id: string;
   registry?: FootnoteRegistry;
+  defer?: boolean;
 }
 
-const { id, registry } = Astro.props;
+const { id, registry, defer = false } = Astro.props;
 
 if (!registry) {
   throw new Error('FootnoteRef component requires a registry prop');
 }
 
-const footnoteNumber = registry.register(id);
+// Register the footnote and get the number
+const footnoteNumber = registry.register(id, defer);
 ---
 
 <sup>
-  <a href={`#footnote-${id}`} id={`footnote-ref-${id}`} class="footnote-ref">
+  <a 
+    href={`#footnote-${id}`} 
+    id={`footnote-ref-${id}`} 
+    class="footnote-ref"
+    data-footnote-id={id}
+    data-deferred={defer ? 'true' : 'false'}
+  >
     {footnoteNumber}
   </a>
 </sup>

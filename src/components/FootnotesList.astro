@@ -6,7 +6,12 @@ export interface Props {
 }
 
 const { registry } = Astro.props;
+
+// Validate that no deferred footnotes remain unused
+registry.validateNoDeferredFootnotes();
+
 const footnotes = registry.getAllFootnotes();
+const deferredMappings = registry.getDeferredMappings();
 
 // Import footnote content dynamically
 const footnoteContents = await Promise.all(
@@ -149,3 +154,16 @@ const validFootnotes = footnoteContents.filter(Boolean);
     margin: 0.25rem 0;
   }
 </style>
+
+<script define:vars={{ deferredMappings }}>
+  // Fix deferred footnote numbers on the client side
+  document.addEventListener('DOMContentLoaded', () => {
+    deferredMappings.forEach(({ id, number }) => {
+      // Find all deferred footnote references for this ID
+      const deferredRefs = document.querySelectorAll(`a[data-footnote-id="${id}"][data-deferred="true"]`);
+      deferredRefs.forEach(ref => {
+        ref.textContent = number.toString();
+      });
+    });
+  });
+</script>
