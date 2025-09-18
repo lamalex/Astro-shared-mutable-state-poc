@@ -1,0 +1,37 @@
+---
+import FootnoteRef from '../FootnoteRef.astro';
+import type { FootnoteRegistry } from '../../lib/footnote-registry';
+
+export interface Props {
+  registry: FootnoteRegistry;
+}
+
+const { registry } = Astro.props;
+---
+
+<article>
+  <h1>Getting Started with Astro</h1>
+  
+  <p>
+    Astro is a modern web framework<FootnoteRef id="ABC_123" registry={registry} /> that allows you to build fast, content-focused websites. Unlike traditional frameworks, Astro ships zero JavaScript by default, making your sites incredibly fast.
+  </p>
+
+  <h2>Key Features</h2>
+  
+  <p>
+    One of Astro's most powerful features is its component islands architecture<FootnoteRef id="DEF_456" registry={registry} />. This allows you to use components from different frameworks like React, Vue, or Svelte within the same project.
+  </p>
+
+  <p>
+    The framework also supports excellent developer experience with features like:
+  </p>
+  <ul>
+    <li>Hot module replacement</li>
+    <li>TypeScript support out of the box</li>
+    <li>Built-in optimizations</li>
+  </ul>
+
+  <p>
+    For more technical implementation details<FootnoteRef id="GHI_789" registry={registry} />, check the official documentation.
+  </p>
+</article>

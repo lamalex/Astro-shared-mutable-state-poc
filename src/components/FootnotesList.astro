@@ -1,0 +1,151 @@
+---
+import type { FootnoteRegistry } from '../lib/footnote-registry';
+
+export interface Props {
+  registry: FootnoteRegistry;
+}
+
+const { registry } = Astro.props;
+const footnotes = registry.getAllFootnotes();
+
+// Import footnote content dynamically
+const footnoteContents = await Promise.all(
+  footnotes.map(async ({ id }) => {
+    try {
+      const module = await import(`../content/footnotes/${id}.mdx`);
+      return {
+        id,
+        Content: module.default,
+        frontmatter: module.frontmatter,
+      };
+    } catch (error) {
+      console.error(`Failed to load footnote ${id}:`, error);
+      return null;
+    }
+  })
+);
+
+const validFootnotes = footnoteContents.filter(Boolean);
+---
+
+{footnotes.length > 0 && (
+  <section class="footnotes">
+    <h2>Footnotes</h2>
+    <ol class="footnotes-list">
+      {footnotes.map(({ id, number }) => {
+        const footnoteContent = validFootnotes.find(f => f?.id === id);
+        
+        return (
+          <li 
+            id={`footnote-${id}`} 
+            class="footnote-item"
+            value={number}
+          >
+            {footnoteContent ? (
+              <div class="footnote-content">
+                <footnoteContent.Content />
+                <a 
+                  href={`#footnote-ref-${id}`} 
+                  class="footnote-backlink"
+                  title="Return to reference"
+                >
+                  ↩
+                </a>
+              </div>
+            ) : (
+              <div class="footnote-error">
+                Footnote content not found for ID: {id}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  </section>
+)}
+
+<style>
+  .footnotes {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e5e5;
+  }
+  
+  .footnotes h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .footnotes-list {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding-left: 1.5rem;
+  }
+  
+  .footnote-item {
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+  
+  .footnote-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .footnote-content > :global(div) {
+    flex: 1;
+  }
+  
+  .footnote-backlink {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.8rem;
+    margin-left: 0.25rem;
+    flex-shrink: 0;
+  }
+  
+  .footnote-backlink:hover {
+    text-decoration: underline;
+  }
+  
+  .footnote-error {
+    color: #cc0000;
+    font-style: italic;
+  }
+  
+  /* Style the footnote content */
+  .footnote-content :global(p) {
+    margin: 0;
+  }
+  
+  .footnote-content :global(p + p) {
+    margin-top: 0.5rem;
+  }
+  
+  .footnote-content :global(code) {
+    background: #f5f5f5;
+    padding: 0.1rem 0.25rem;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+  
+  .footnote-content :global(pre) {
+    background: #f5f5f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+  }
+  
+  .footnote-content :global(ul) {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  .footnote-content :global(li) {
+    margin: 0.25rem 0;
+  }
+</style>

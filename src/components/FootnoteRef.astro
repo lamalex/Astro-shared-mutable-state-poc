@@ -1,0 +1,34 @@
+---
+import type { FootnoteRegistry } from '../lib/footnote-registry';
+
+export interface Props {
+  id: string;
+  registry?: FootnoteRegistry;
+}
+
+const { id, registry } = Astro.props;
+
+if (!registry) {
+  throw new Error('FootnoteRef component requires a registry prop');
+}
+
+const footnoteNumber = registry.register(id);
+---
+
+<sup>
+  <a href={`#footnote-${id}`} id={`footnote-ref-${id}`} class="footnote-ref">
+    {footnoteNumber}
+  </a>
+</sup>
+
+<style>
+  .footnote-ref {
+    text-decoration: none;
+    color: #0066cc;
+    font-weight: 500;
+  }
+  
+  .footnote-ref:hover {
+    text-decoration: underline;
+  }
+</style>
