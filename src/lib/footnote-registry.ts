@@ -32,13 +32,7 @@ export class FootnoteRegistry {
     return this.footnoteMap.get(footnoteId);
   }
 
-  // Get all originally deferred footnotes and their resolved numbers
-  getDeferredMappings(): Array<{ id: string; number: number }> {
-    return Array.from(this.originallyDeferredFootnotes).map(id => ({
-      id,
-      number: this.footnoteMap.get(id) || 0
-    })).filter(mapping => mapping.number > 0);
-  }
+
 
   getAllFootnotes(): Array<{ id: string; number: number }> {
     return Array.from(this.footnoteMap.entries()).map(([id, number]) => ({

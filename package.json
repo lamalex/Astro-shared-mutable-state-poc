@@ -10,6 +10,10 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.5",
-    "astro": "^5.13.8"
+    "astro": "^5.13.8",
+    "node-html-parser": "^7.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2"
   }
 }
