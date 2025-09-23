@@ -2,17 +2,20 @@
 import FootnotesList from '../components/FootnotesList.astro';
 import FootnoteRef from '../components/FootnoteRef.astro';
 import { FootnoteRegistry } from '../lib/footnote-registry';
-import { articleComponents, type ArticleKey } from '../lib/article-registry';
+import { getEntry, render, getCollection } from 'astro:content';
 
 // Create a new registry instance for this page
 const registry = new FootnoteRegistry();
 
-// Define the article order declaratively with a clear static array
-const articleOrder: ArticleKey[] = [
-  'building-components',  // Components article first
-  'advanced-techniques',  // Advanced techniques second
-  'getting-started'       // Getting started last
-];
+// Get all articles and sort by order
+const allArticles = await getCollection('articles');
+const sortedArticles = allArticles.sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
+
+const frog = await getEntry('animals', 'frogs');
+if (!frog) {
+  throw new Error('Frog entry not found');
+}
+const { Content } = await render(frog);
 ---
 
 <html lang="en">
@@ -35,21 +38,27 @@ const articleOrder: ArticleKey[] = [
 					<a href="/advanced">View Advanced Page →</a>
 				</nav>
 			</header>
-			
+
 			<section class="articles">
 				{/* 
-					Articles render in the order specified by articleOrder.
+					Articles render in the order specified by the order field.
 					Footnotes are numbered globally based on first appearance 
 					across all articles in this rendering order.
 				*/}
-				{articleOrder.map((articleKey) => {
-					const ArticleComponent = articleComponents[articleKey];
+				{sortedArticles.map(async (article) => {
+					const { Content } = await render(article);
 					return (
 						<article class="article-container">
-							<ArticleComponent registry={registry} />
+							<Content registry={registry} />
 						</article>
 					);
 				})}
+			</section>
+
+			<section class="articles">
+				<article class="article-container">
+					<Content registry={registry} />
+				</article>
 			</section>
 			
 			<FootnotesList registry={registry} />

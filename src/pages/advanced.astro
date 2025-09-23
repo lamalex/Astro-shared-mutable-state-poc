@@ -1,17 +1,19 @@
 ---
 import FootnotesList from '../components/FootnotesList.astro';
 import { FootnoteRegistry } from '../lib/footnote-registry';
-import { articleComponents, type ArticleKey } from '../lib/article-registry';
+import { getCollection, render } from 'astro:content';
 
 // Create a new registry instance for this page
 const registry = new FootnoteRegistry();
 
-// This page puts advanced content first with a clear static array
-const articleOrder: ArticleKey[] = [
-  'advanced-techniques',  // Advanced techniques first
-  'building-components',  // Components second  
-  'getting-started'       // Getting started last
-];
+// Get all articles and define a different order for this page
+const allArticles = await getCollection('articles');
+const advancedPageOrder = ['advanced-techniques', 'building-components', 'getting-started'];
+const sortedArticles = allArticles.sort((a, b) => {
+  const aIndex = advancedPageOrder.indexOf(a.data.id);
+  const bIndex = advancedPageOrder.indexOf(b.data.id);
+  return aIndex - bIndex;
+});
 ---
 
 <html lang="en">
@@ -37,14 +39,14 @@ const articleOrder: ArticleKey[] = [
 			
 			<section class="articles">
 				{/* 
-					Using the same article components but in different order.
+					Using the same article content but in different order.
 					Footnotes will be numbered based on this different rendering order.
 				*/}
-				{articleOrder.map((articleKey) => {
-					const ArticleComponent = articleComponents[articleKey];
+				{sortedArticles.map(async (article) => {
+					const { Content } = await render(article);
 					return (
 						<article class="article-container">
-							<ArticleComponent registry={registry} />
+							<Content registry={registry} />
 						</article>
 					);
 				})}
