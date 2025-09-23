@@ -8,6 +8,16 @@ const footnotes = defineCollection({
   }),
 });
 
+const animals = defineCollection({
+  type: 'content',
+  schema: z.object({
+    id: z.string(),
+    title: z.string().optional(),
+  }),
+});
+
+
 export const collections = {
   footnotes,
+  animals
 };

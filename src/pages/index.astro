@@ -3,6 +3,7 @@ import FootnotesList from '../components/FootnotesList.astro';
 import FootnoteRef from '../components/FootnoteRef.astro';
 import { FootnoteRegistry } from '../lib/footnote-registry';
 import { articleComponents, type ArticleKey } from '../lib/article-registry';
+import { getEntry, render, getCollection } from 'astro:content';
 
 // Create a new registry instance for this page
 const registry = new FootnoteRegistry();
@@ -13,6 +14,12 @@ const articleOrder: ArticleKey[] = [
   'advanced-techniques',  // Advanced techniques second
   'getting-started'       // Getting started last
 ];
+
+const frog = await getEntry('animals', 'frogs');
+if (!frog) {
+  throw new Error('Frog entry not found');
+}
+const { Content } = await render(frog);
 ---
 
 <html lang="en">
@@ -35,6 +42,10 @@ const articleOrder: ArticleKey[] = [
 					<a href="/advanced">View Advanced Page →</a>
 				</nav>
 			</header>
+
+			<section class="articles">
+				<Content registry={registry} defer={false} />
+			</section>
 			
 			<section class="articles">
 				{/* 
