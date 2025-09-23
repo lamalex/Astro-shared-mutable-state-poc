@@ -1,0 +1,35 @@
+---
+id: "building-components"
+title: "Building Reusable Components"
+order: 1
+---
+import FootnoteRef from '../../components/FootnoteRef.astro';
+
+# Building Reusable Components
+
+Creating reusable components is essential for maintainable web applications. Astro<FootnoteRef id="ABC_123" registry={props.registry} /> provides several patterns for building components that can be shared across your project.
+
+## Astro Components
+
+Astro's native component format combines the power of JSX-like syntax with server-side rendering. Components are rendered at build time, ensuring optimal performance.
+
+## Framework Integration
+
+You can also integrate components from popular frameworks. For example, React components can be hydrated selectively when interactivity is needed.
+
+## Component Props and Slots
+
+Astro supports both props and slots for component composition:
+
+```astro
+---
+export interface Props {
+  title: string;
+  variant?: 'primary' | 'secondary';
+}
+---
+```
+
+This flexibility makes it easy to create component libraries that are both powerful and easy to use<FootnoteRef id="GHI_789" registry={props.registry} />. 
+The entire development process for this system was demonstrated live<FootnoteRef id="OPENCODE_001" registry={props.registry} />, 
+and the source code is available<FootnoteRef id="GITHUB_REPO" registry={props.registry} />.
