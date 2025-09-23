@@ -1,0 +1,218 @@
+---
+import FootnotesList from './FootnotesList.astro';
+import type { FootnoteRegistry } from '../lib/footnote-registry';
+import type { RenderedContent } from '../lib/footnote-manager';
+
+export interface Props {
+  registry: FootnoteRegistry;
+  articles: RenderedContent[];
+  additionalContent?: RenderedContent[];
+  title: string;
+  subtitle?: string;
+  headerSlot?: any;
+  theme?: 'default' | 'red';
+}
+
+const { registry, articles, additionalContent, title, subtitle, theme = 'default' } = Astro.props;
+
+// Theme colors
+const themeColors = {
+  default: {
+    primary: '#3498db',
+    secondary: '#2c3e50',
+    tertiary: '#34495e',
+    background: '#f8f9fa',
+    codeBackground: '#e9ecef',
+    preBackground: '#2c3e50',
+    preColor: '#ecf0f1'
+  },
+  red: {
+    primary: '#e74c3c',
+    secondary: '#c0392b',
+    tertiary: '#e74c3c',
+    background: '#fdf2f2',
+    codeBackground: '#f8d7da',
+    preBackground: '#721c24',
+    preColor: '#f8d7da'
+  }
+};
+
+const colors = themeColors[theme];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} - Astro</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>{title}</h1>
+        {subtitle && (
+          <p class="subtitle">{subtitle}</p>
+        )}
+        <!-- Allow custom header content -->
+        <slot name="header" />
+        <nav>
+          <slot name="navigation" />
+        </nav>
+      </header>
+
+      <!-- Render main articles -->
+      <section class="articles">
+        {articles.map(({ Content }) => (
+          <article class="article-container">
+            <Content registry={registry} />
+          </article>
+        ))}
+      </section>
+
+      <!-- Render additional content if provided -->
+      {additionalContent && additionalContent.length > 0 && (
+        <section class="articles">
+          {additionalContent.map(({ Content }) => (
+            <article class="article-container">
+              <Content registry={registry} />
+            </article>
+          ))}
+        </section>
+      )}
+
+      <!-- Always render footnotes at the end -->
+      <FootnotesList registry={registry} />
+    </main>
+
+    <style define:vars={{
+      primaryColor: colors.primary,
+      secondaryColor: colors.secondary,
+      tertiaryColor: colors.tertiary,
+      backgroundColor: colors.background,
+      codeBackgroundColor: colors.codeBackground,
+      preBackgroundColor: colors.preBackground,
+      preTextColor: colors.preColor
+    }}>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+        line-height: 1.6;
+        color: #333;
+      }
+      
+      header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid var(--primaryColor);
+      }
+      
+      h1 {
+        color: var(--secondaryColor);
+        margin-bottom: 1rem;
+        font-size: 2.5rem;
+      }
+      
+      .subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto 1rem;
+      }
+      
+      nav :global(a) {
+        color: var(--primaryColor);
+        text-decoration: none;
+        font-weight: 500;
+      }
+      
+      nav :global(a:hover) {
+        text-decoration: underline;
+      }
+      
+      .articles {
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+        margin-bottom: 4rem;
+      }
+      
+      .article-container {
+        background: var(--backgroundColor);
+        border-radius: 8px;
+        padding: 2rem;
+        border-left: 4px solid var(--primaryColor);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      /* Style MDX content */
+      .article-container :global(h1) {
+        color: var(--secondaryColor);
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        margin-top: 0;
+      }
+      
+      .article-container :global(h2) {
+        color: var(--tertiaryColor);
+        font-size: 1.3rem;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+      
+      .article-container :global(p) {
+        margin-bottom: 1rem;
+      }
+      
+      .article-container :global(ul) {
+        margin: 1rem 0;
+        padding-left: 2rem;
+      }
+      
+      .article-container :global(li) {
+        margin-bottom: 0.5rem;
+      }
+      
+      .article-container :global(code) {
+        background: var(--codeBackgroundColor);
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+      
+      .article-container :global(pre) {
+        background: var(--preBackgroundColor);
+        color: var(--preTextColor);
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        margin: 1rem 0;
+      }
+      
+      .article-container :global(pre code) {
+        background: none;
+        padding: 0;
+        color: inherit;
+      }
+      
+      /* Responsive design */
+      @media (max-width: 768px) {
+        body {
+          padding: 1rem;
+        }
+        
+        h1 {
+          font-size: 2rem;
+        }
+        
+        .article-container {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </body>
+</html>

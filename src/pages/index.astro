@@ -1,194 +1,45 @@
 ---
-import FootnotesList from '../components/FootnotesList.astro';
 import FootnoteRef from '../components/FootnoteRef.astro';
-import { FootnoteRegistry } from '../lib/footnote-registry';
-import { getEntry, render, getCollection } from 'astro:content';
+import FootnotePageLayout from '../components/FootnotePageLayout.astro';
+import { FootnoteManager } from '../lib/footnote-manager';
+import { ContentUtils } from '../lib/content-utils';
 
-const re = /<FootnoteRef\b[^>]*\bid\s*=\s*["']([^"']+)["'][^>]*\/?>/g;
+// Setup page content using our new abstractions
+const { articles, additionalContent } = await ContentUtils.createArticlePage({
+  articleOrder: 'by-order',
+  additionalContent: [
+    { collection: 'animals', slug: 'frogs' }
+  ]
+});
 
-// Create a new registry instance for this page
-const registry = new FootnoteRegistry();
+// Create footnote manager with deferred footnotes and content
+const { registry, renderedContent } = await FootnoteManager.createForPage({
+  deferredFootnotes: [
+    { id: 'OPENCODE_001', deferred: true },
+    { id: 'GITHUB_REPO', deferred: true }
+  ],
+  content: [...articles, ...additionalContent]
+});
 
-// Get all articles and sort by order
-const allArticles = await getCollection('articles');
-const sortedArticles = allArticles.sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
-
-const frog = await getEntry('animals', 'frogs');
-console.log(frog?.body);
-if (!frog) {
-  throw new Error('Frog entry not found');
-}
-const { Content } = await render(frog);
+// Separate articles from additional content for rendering
+const renderedArticles = renderedContent.slice(0, articles.length);
+const renderedAdditionalContent = renderedContent.slice(articles.length);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Multi-Article Footnotes POC - Astro</title>
-	</head>
-	<body>
-		<main>
-			<header>
-				<h1>Multi-Article Footnotes System</h1>
-				<p class="subtitle">
-					Demonstrating footnote numbering across multiple MDX articles 
-					with a single footnotes list at the bottom. Built live in OpenCode<FootnoteRef id="OPENCODE_001" registry={registry} defer={true} /> with source code on GitHub<FootnoteRef id="GITHUB_REPO" registry={registry} defer={true} />!
-				</p>
-				<nav>
-					<a href="/advanced">View Advanced Page →</a>
-				</nav>
-			</header>
-
-			<section class="articles">
-				{/* 
-					Articles render in the order specified by the order field.
-					Footnotes are numbered globally based on first appearance 
-					across all articles in this rendering order.
-				*/}
-				{sortedArticles.map(async (article) => {
-					// STUPID FREAKING HACK ALERT!
-					Array.from(article.body.matchAll(re), m => m[1])
-						.forEach(id => registry.register(id));
-					const { Content } = await render(article);
-					return (
-						<article class="article-container">
-							<Content registry={registry} />
-						</article>
-					);
-				})}
-			</section>
-
-			<section class="articles">
-				<article class="article-container">
-					<Content registry={registry} />
-				</article>
-			</section>
-			
-			<FootnotesList registry={registry} />
-		</main>
-		
-		<style>
-			body {
-				font-family: system-ui, sans-serif;
-				max-width: 900px;
-				margin: 0 auto;
-				padding: 2rem;
-				line-height: 1.6;
-				color: #333;
-			}
-			
-			header {
-				text-align: center;
-				margin-bottom: 3rem;
-				padding-bottom: 2rem;
-				border-bottom: 2px solid #3498db;
-			}
-			
-			h1 {
-				color: #2c3e50;
-				margin-bottom: 1rem;
-				font-size: 2.5rem;
-			}
-			
-			.subtitle {
-				color: #666;
-				font-size: 1.1rem;
-				max-width: 600px;
-				margin: 0 auto 1rem;
-			}
-			
-			nav a {
-				color: #3498db;
-				text-decoration: none;
-				font-weight: 500;
-			}
-			
-			nav a:hover {
-				text-decoration: underline;
-			}
-			
-			.articles {
-				display: flex;
-				flex-direction: column;
-				gap: 3rem;
-				margin-bottom: 4rem;
-			}
-			
-			.article-container {
-				background: #f8f9fa;
-				border-radius: 8px;
-				padding: 2rem;
-				border-left: 4px solid #3498db;
-				box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-			}
-			
-			/* Style MDX content */
-			.article-container :global(h1) {
-				color: #2c3e50;
-				font-size: 1.8rem;
-				margin-bottom: 1rem;
-				margin-top: 0;
-			}
-			
-			.article-container :global(h2) {
-				color: #34495e;
-				font-size: 1.3rem;
-				margin-top: 2rem;
-				margin-bottom: 1rem;
-			}
-			
-			.article-container :global(p) {
-				margin-bottom: 1rem;
-			}
-			
-			.article-container :global(ul) {
-				margin: 1rem 0;
-				padding-left: 2rem;
-			}
-			
-			.article-container :global(li) {
-				margin-bottom: 0.5rem;
-			}
-			
-			.article-container :global(code) {
-				background: #e9ecef;
-				padding: 0.2rem 0.4rem;
-				border-radius: 3px;
-				font-size: 0.9em;
-			}
-			
-			.article-container :global(pre) {
-				background: #2c3e50;
-				color: #ecf0f1;
-				padding: 1rem;
-				border-radius: 4px;
-				overflow-x: auto;
-				margin: 1rem 0;
-			}
-			
-			.article-container :global(pre code) {
-				background: none;
-				padding: 0;
-				color: inherit;
-			}
-			
-			/* Responsive design */
-			@media (max-width: 768px) {
-				body {
-					padding: 1rem;
-				}
-				
-				h1 {
-					font-size: 2rem;
-				}
-				
-				.article-container {
-					padding: 1.5rem;
-				}
-			}
-		</style>
-	</body>
-</html>
+<FootnotePageLayout
+  registry={registry}
+  articles={renderedArticles}
+  additionalContent={renderedAdditionalContent}
+  title="Multi-Article Footnotes System"
+>
+  <Fragment slot="header">
+    <p class="subtitle">
+      Demonstrating footnote numbering across multiple MDX articles 
+      with a single footnotes list at the bottom. Built live in OpenCode<FootnoteRef id="OPENCODE_001" registry={registry} defer={true} /> with source code on GitHub<FootnoteRef id="GITHUB_REPO" registry={registry} defer={true} />!
+    </p>
+  </Fragment>
+  
+  <Fragment slot="navigation">
+    <a href="/advanced">View Advanced Page →</a>
+  </Fragment>
+</FootnotePageLayout>

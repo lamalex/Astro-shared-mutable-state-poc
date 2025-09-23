@@ -1,179 +1,33 @@
 ---
-import FootnotesList from '../components/FootnotesList.astro';
-import { FootnoteRegistry } from '../lib/footnote-registry';
-import { getCollection, render } from 'astro:content';
+import FootnotePageLayout from '../components/FootnotePageLayout.astro';
+import { FootnoteManager } from '../lib/footnote-manager';
+import { ContentUtils } from '../lib/content-utils';
 
-// Create a new registry instance for this page
-const registry = new FootnoteRegistry();
+// Setup page content with custom article order
+const { articles } = await ContentUtils.createArticlePage({
+  articleOrder: ['advanced-techniques', 'building-components', 'getting-started']
+});
 
-// Get all articles and define a different order for this page
-const allArticles = await getCollection('articles');
-const advancedPageOrder = ['advanced-techniques', 'building-components', 'getting-started'];
-const sortedArticles = allArticles.sort((a, b) => {
-  const aIndex = advancedPageOrder.indexOf(a.data.id);
-  const bIndex = advancedPageOrder.indexOf(b.data.id);
-  return aIndex - bIndex;
+// Create footnote manager (no deferred footnotes on this page)
+const { registry, renderedContent } = await FootnoteManager.createForPage({
+  content: articles
 });
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Advanced Page - Astro Footnotes POC</title>
-	</head>
-	<body>
-		<main>
-			<header>
-				<h1>Advanced Astro Techniques</h1>
-				<p class="subtitle">
-					Same articles, different order - demonstrating reusable article registry.
-					Notice how footnote numbering changes based on the new order!
-				</p>
-				<nav>
-					<a href="/">← Back to Main Page</a>
-				</nav>
-			</header>
-			
-			<section class="articles">
-				{/* 
-					Using the same article content but in different order.
-					Footnotes will be numbered based on this different rendering order.
-				*/}
-				{sortedArticles.map(async (article) => {
-					const { Content } = await render(article);
-					return (
-						<article class="article-container">
-							<Content registry={registry} />
-						</article>
-					);
-				})}
-			</section>
-			
-			<FootnotesList registry={registry} />
-		</main>
-		
-		<style>
-			body {
-				font-family: system-ui, sans-serif;
-				max-width: 900px;
-				margin: 0 auto;
-				padding: 2rem;
-				line-height: 1.6;
-				color: #333;
-			}
-			
-			header {
-				text-align: center;
-				margin-bottom: 3rem;
-				padding-bottom: 2rem;
-				border-bottom: 2px solid #e74c3c;
-			}
-			
-			h1 {
-				color: #c0392b;
-				margin-bottom: 1rem;
-				font-size: 2.5rem;
-			}
-			
-			.subtitle {
-				color: #666;
-				font-size: 1.1rem;
-				max-width: 600px;
-				margin: 0 auto 1rem;
-			}
-			
-			nav a {
-				color: #e74c3c;
-				text-decoration: none;
-				font-weight: 500;
-			}
-			
-			nav a:hover {
-				text-decoration: underline;
-			}
-			
-			.articles {
-				display: flex;
-				flex-direction: column;
-				gap: 3rem;
-				margin-bottom: 4rem;
-			}
-			
-			.article-container {
-				background: #fdf2f2;
-				border-radius: 8px;
-				padding: 2rem;
-				border-left: 4px solid #e74c3c;
-				box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-			}
-			
-			/* Style MDX content */
-			.article-container :global(h1) {
-				color: #c0392b;
-				font-size: 1.8rem;
-				margin-bottom: 1rem;
-				margin-top: 0;
-			}
-			
-			.article-container :global(h2) {
-				color: #e74c3c;
-				font-size: 1.3rem;
-				margin-top: 2rem;
-				margin-bottom: 1rem;
-			}
-			
-			.article-container :global(p) {
-				margin-bottom: 1rem;
-			}
-			
-			.article-container :global(ul) {
-				margin: 1rem 0;
-				padding-left: 2rem;
-			}
-			
-			.article-container :global(li) {
-				margin-bottom: 0.5rem;
-			}
-			
-			.article-container :global(code) {
-				background: #f8d7da;
-				padding: 0.2rem 0.4rem;
-				border-radius: 3px;
-				font-size: 0.9em;
-			}
-			
-			.article-container :global(pre) {
-				background: #721c24;
-				color: #f8d7da;
-				padding: 1rem;
-				border-radius: 4px;
-				overflow-x: auto;
-				margin: 1rem 0;
-			}
-			
-			.article-container :global(pre code) {
-				background: none;
-				padding: 0;
-				color: inherit;
-			}
-			
-			/* Responsive design */
-			@media (max-width: 768px) {
-				body {
-					padding: 1rem;
-				}
-				
-				h1 {
-					font-size: 2rem;
-				}
-				
-				.article-container {
-					padding: 1.5rem;
-				}
-			}
-		</style>
-	</body>
-</html>
+<FootnotePageLayout
+  registry={registry}
+  articles={renderedContent}
+  title="Advanced Astro Techniques"
+  theme="red"
+>
+  <Fragment slot="header">
+    <p class="subtitle">
+      Same articles, different order - demonstrating reusable content collections.
+      Notice how footnote numbering changes based on the new order!
+    </p>
+  </Fragment>
+  
+  <Fragment slot="navigation">
+    <a href="/">← Back to Main Page</a>
+  </Fragment>
+</FootnotePageLayout>
